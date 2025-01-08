@@ -1,4 +1,4 @@
-import { FileCode2, Box, Layers } from "lucide-react";
+import { FileCode2, Box, Layers, Terminal, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -12,6 +12,9 @@ export function Sidebar({ isOpen, onSelect, selectedTool }: SidebarProps) {
     { id: "dockerfile", name: "Dockerfile", icon: FileCode2 },
     { id: "compose", name: "Docker Compose", icon: Box },
     { id: "kubernetes", name: "Kubernetes", icon: Layers },
+    { id: "ansible", name: "Ansible", icon: Terminal },
+    { id: "backup", name: "Backup Scripts", icon: Terminal },
+    { id: "webserver", name: "Web Server", icon: Server },
   ];
 
   return (

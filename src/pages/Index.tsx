@@ -3,6 +3,10 @@ import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
 import { DockerfileGenerator } from "@/components/DockerfileGenerator";
 import { ComposeGenerator } from "@/components/ComposeGenerator";
+import { KubernetesGenerator } from "@/components/KubernetesGenerator";
+import { AnsibleGenerator } from "@/components/AnsibleGenerator";
+import { BackupGenerator } from "@/components/BackupGenerator";
+import { WebServerGenerator } from "@/components/WebServerGenerator";
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +18,14 @@ const Index = () => {
         return <DockerfileGenerator />;
       case "compose":
         return <ComposeGenerator />;
+      case "kubernetes":
+        return <KubernetesGenerator />;
+      case "ansible":
+        return <AnsibleGenerator />;
+      case "backup":
+        return <BackupGenerator />;
+      case "webserver":
+        return <WebServerGenerator />;
       default:
         return (
           <div className="flex h-[50vh] items-center justify-center">
