@@ -1,11 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
+import { DockerfileGenerator } from "@/components/DockerfileGenerator";
+import { ComposeGenerator } from "@/components/ComposeGenerator";
 
 const Index = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedTool, setSelectedTool] = useState("dockerfile");
+
+  const renderTool = () => {
+    switch (selectedTool) {
+      case "dockerfile":
+        return <DockerfileGenerator />;
+      case "compose":
+        return <ComposeGenerator />;
+      default:
+        return (
+          <div className="flex h-[50vh] items-center justify-center">
+            <p className="text-muted-foreground">Select a tool from the sidebar to begin</p>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <Navbar onMenuClick={() => setIsMenuOpen(!isMenuOpen)} />
+      <div className="flex">
+        <Sidebar
+          isOpen={isMenuOpen}
+          onSelect={setSelectedTool}
+          selectedTool={selectedTool}
+        />
+        <main className="flex-1 p-6 md:ml-64">
+          <div className="mx-auto max-w-4xl">
+            {renderTool()}
+          </div>
+        </main>
       </div>
     </div>
   );
