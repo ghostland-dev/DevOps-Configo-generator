@@ -55,27 +55,27 @@ if [ ! -z "$LAST_BACKUP" ]; then
 fi` : ""}
 
 # Create backup
-${useCompression ? `tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" "$SOURCE_DIR"` : 
+${useCompression ? `tar -czf "$BACKUP_DIR/\${BACKUP_NAME}.tar.gz" "$SOURCE_DIR"` : 
   backupType === "incremental" ? 
-  `rsync -az --progress $INCREMENTAL_OPT "$SOURCE_DIR" "$BACKUP_DIR/$BACKUP_NAME"` :
-  `cp -r "$SOURCE_DIR" "$BACKUP_DIR/$BACKUP_NAME"`}
+  `rsync -az --progress $INCREMENTAL_OPT "$SOURCE_DIR" "$BACKUP_DIR/\${BACKUP_NAME}"` :
+  `cp -r "$SOURCE_DIR" "$BACKUP_DIR/\${BACKUP_NAME}"`}
 
 ${backupDatabase ? `# Backup database
-pg_dump -U $DB_USER -h $DB_HOST $DB_NAME > "$BACKUP_DIR/${BACKUP_NAME}_db.sql"
-${useCompression ? `gzip "$BACKUP_DIR/${BACKUP_NAME}_db.sql"` : ""}` : ""}
+pg_dump -U $DB_USER -h $DB_HOST $DB_NAME > "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"
+${useCompression ? `gzip "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"` : ""}` : ""}
 
 ${useS3 ? `# Upload to S3
 log "Uploading backup to S3"
-aws s3 cp "$BACKUP_DIR/$BACKUP_NAME.tar.gz" "s3://$S3_BUCKET/${environment}/" --profile $AWS_PROFILE` : ""}
+aws s3 cp "$BACKUP_DIR/\${BACKUP_NAME}.tar.gz" "s3://$S3_BUCKET/${environment}/" --profile $AWS_PROFILE` : ""}
 
 # Cleanup old backups
 find $BACKUP_DIR -name "backup_${environment}_*.tar.gz" -mtime +$RETENTION_DAYS -delete
 ${backupDatabase ? `find $BACKUP_DIR -name "backup_${environment}_*_db.sql.gz" -mtime +$RETENTION_DAYS -delete` : ""}
 
-log "Backup completed: $BACKUP_NAME"
+log "Backup completed: \${BACKUP_NAME}"
 
 # Check backup size
-BACKUP_SIZE=$(du -sh "$BACKUP_DIR/$BACKUP_NAME"* | cut -f1)
+BACKUP_SIZE=$(du -sh "$BACKUP_DIR/\${BACKUP_NAME}"* | cut -f1)
 log "Backup size: $BACKUP_SIZE"
 
 ${environment === "production" ? `# Send notification
@@ -113,7 +113,6 @@ fi` : ""}`;
           >
             <SelectTrigger>
               <SelectValue placeholder="Select backup type" />
-            
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="full">Full</SelectItem>
