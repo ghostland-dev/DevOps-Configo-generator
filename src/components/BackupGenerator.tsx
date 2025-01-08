@@ -15,8 +15,20 @@ export function BackupGenerator() {
   const [useCompression, setUseCompression] = useState(true);
   const [backupDatabase, setBackupDatabase] = useState(false);
   const [backupType, setBackupType] = useState("full");
+  const [dbType, setDbType] = useState("postgresql");
+  const [dbName, setDbName] = useState("myapp");
+  const [dbUser, setDbUser] = useState("dbuser");
+  const [dbHost, setDbHost] = useState("localhost");
+  const [dbPort, setDbPort] = useState("5432");
 
   const generateBackupScript = () => {
+    const dbCommands = {
+      postgresql: `pg_dump -U $DB_USER -h $DB_HOST -p $DB_PORT $DB_NAME > "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"`,
+      mysql: `mysqldump -u $DB_USER -h $DB_HOST -P $DB_PORT $DB_NAME > "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"`,
+      mongodb: `mongodump --host $DB_HOST --port $DB_PORT --db $DB_NAME --out "$BACKUP_DIR/\${BACKUP_NAME}_db"`,
+      redis: `redis-cli -h $DB_HOST -p $DB_PORT --rdb "$BACKUP_DIR/\${BACKUP_NAME}_db.rdb"`
+    };
+
     return `#!/bin/bash
 
 # Environment configuration
@@ -35,9 +47,10 @@ S3_BUCKET="my-backup-bucket"
 AWS_PROFILE="default"` : ""}
 
 ${backupDatabase ? `# Database configuration
-DB_USER="dbuser"
-DB_NAME="myapp"
-DB_HOST="localhost"` : ""}
+DB_USER="${dbUser}"
+DB_NAME="${dbName}"
+DB_HOST="${dbHost}"
+DB_PORT="${dbPort}"` : ""}
 
 # Logging function
 log() {
@@ -61,8 +74,8 @@ ${useCompression ? `tar -czf "$BACKUP_DIR/\${BACKUP_NAME}.tar.gz" "$SOURCE_DIR"`
   `cp -r "$SOURCE_DIR" "$BACKUP_DIR/\${BACKUP_NAME}"`}
 
 ${backupDatabase ? `# Backup database
-pg_dump -U $DB_USER -h $DB_HOST $DB_NAME > "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"
-${useCompression ? `gzip "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"` : ""}` : ""}
+${dbCommands[dbType]}
+${useCompression && dbType !== 'mongodb' ? `gzip "$BACKUP_DIR/\${BACKUP_NAME}_db.sql"` : ""}` : ""}
 
 ${useS3 ? `# Upload to S3
 log "Uploading backup to S3"
@@ -70,7 +83,7 @@ aws s3 cp "$BACKUP_DIR/\${BACKUP_NAME}.tar.gz" "s3://$S3_BUCKET/${environment}/"
 
 # Cleanup old backups
 find $BACKUP_DIR -name "backup_${environment}_*.tar.gz" -mtime +$RETENTION_DAYS -delete
-${backupDatabase ? `find $BACKUP_DIR -name "backup_${environment}_*_db.sql.gz" -mtime +$RETENTION_DAYS -delete` : ""}
+${backupDatabase ? `find $BACKUP_DIR -name "backup_${environment}_*_db.*" -mtime +$RETENTION_DAYS -delete` : ""}
 
 log "Backup completed: \${BACKUP_NAME}"
 
@@ -147,6 +160,65 @@ fi` : ""}`;
             placeholder="7"
           />
         </div>
+
+        {backupDatabase && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="dbType">Database Type</Label>
+              <Select 
+                value={dbType} 
+                onValueChange={setDbType}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select database type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                  <SelectItem value="mysql">MySQL</SelectItem>
+                  <SelectItem value="mongodb">MongoDB</SelectItem>
+                  <SelectItem value="redis">Redis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dbName">Database Name</Label>
+              <Input
+                id="dbName"
+                value={dbName}
+                onChange={(e) => setDbName(e.target.value)}
+                placeholder="myapp"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dbUser">Database User</Label>
+              <Input
+                id="dbUser"
+                value={dbUser}
+                onChange={(e) => setDbUser(e.target.value)}
+                placeholder="dbuser"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dbHost">Database Host</Label>
+              <Input
+                id="dbHost"
+                value={dbHost}
+                onChange={(e) => setDbHost(e.target.value)}
+                placeholder="localhost"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dbPort">Database Port</Label>
+              <Input
+                id="dbPort"
+                value={dbPort}
+                onChange={(e) => setDbPort(e.target.value)}
+                placeholder="5432"
+              />
+            </div>
+          </>
+        )}
+
         <div className="flex items-center space-x-2">
           <Switch
             checked={useS3}
