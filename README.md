@@ -1,5 +1,7 @@
 # Configo Generator
 
+[![CI](https://github.com/ghostland-dev/configo-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/ghostland-dev/configo-generator/actions/workflows/ci.yml)
+
 Generator for DevOps configuration files (Docker, CI pipelines, Kubernetes).
 
 ## Features
